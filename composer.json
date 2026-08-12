@@ -1,0 +1,17 @@
+{
+    "name": "kristofkarner/dmarc-report-reader",
+    "description": "Read DMARC aggregate reports and see which senders would break under a stricter policy. Handles xml, gz and zip; tells alignment failures apart from real authentication failures.",
+    "keywords": ["dmarc", "spf", "dkim", "email-authentication", "deliverability", "aggregate-reports", "rua"],
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.1",
+        "ext-simplexml": "*",
+        "ext-zip": "*",
+        "ext-zlib": "*"
+    },
+    "autoload": {
+        "psr-4": { "KK\\Dmarc\\": "src/" }
+    },
+    "bin": ["bin/dmarc-summary.php"]
+}

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  A made-up report, with four sources that between them cover almost
+  everything you will actually see. Addresses are from the ranges
+  reserved for documentation (RFC 5737).
+-->
+<feedback>
+  <report_metadata>
+    <org_name>google.com</org_name>
+    <email>noreply-dmarc-support@google.com</email>
+    <report_id>example-0001</report_id>
+    <date_range>
+      <begin>1786320000</begin>
+      <end>1786406399</end>
+    </date_range>
+  </report_metadata>
+  <policy_published>
+    <domain>example.com</domain>
+    <adkim>r</adkim>
+    <aspf>r</aspf>
+    <p>none</p>
+    <sp>none</sp>
+    <pct>100</pct>
+  </policy_published>
+
+  <!-- 1 · Your own mail server. Both aligned checks pass. -->
+  <record>
+    <row>
+      <source_ip>192.0.2.10</source_ip>
+      <count>128</count>
+      <policy_evaluated><disposition>none</disposition><dkim>pass</dkim><spf>pass</spf></policy_evaluated>
+    </row>
+    <identifiers><header_from>example.com</header_from></identifiers>
+    <auth_results>
+      <dkim><domain>example.com</domain><result>pass</result><selector>s1</selector></dkim>
+      <spf><domain>example.com</domain><result>pass</result></spf>
+    </auth_results>
+  </record>
+
+  <!-- 2 · A forwarder. SPF is broken by the forward, DKIM survives —
+       so DMARC passes. Nothing to do here. -->
+  <record>
+    <row>
+      <source_ip>198.51.100.7</source_ip>
+      <count>14</count>
+      <policy_evaluated><disposition>none</disposition><dkim>pass</dkim><spf>fail</spf></policy_evaluated>
+    </row>
+    <identifiers><header_from>example.com</header_from></identifiers>
+    <auth_results>
+      <dkim><domain>example.com</domain><result>pass</result><selector>s1</selector></dkim>
+      <spf><domain>forwarder.example.net</domain><result>fail</result></spf>
+    </auth_results>
+  </record>
+
+  <!-- 3 · A newsletter tool sending on your behalf. Its own SPF is in
+       order, but under its own domain — so DMARC sees nothing of
+       yours. This is the one that needs fixing, at the sender. -->
+  <record>
+    <row>
+      <source_ip>203.0.113.55</source_ip>
+      <count>402</count>
+      <policy_evaluated><disposition>none</disposition><dkim>fail</dkim><spf>fail</spf></policy_evaluated>
+    </row>
+    <identifiers><header_from>example.com</header_from></identifiers>
+    <auth_results>
+      <spf><domain>mail.newsletter-tool.example</domain><result>pass</result></spf>
+    </auth_results>
+  </record>
+
+  <!-- 4 · Somebody using your domain who has nothing to do with you.
+       Nothing authenticates. This is what the policy is for. -->
+  <record>
+    <row>
+      <source_ip>203.0.113.201</source_ip>
+      <count>56</count>
+      <policy_evaluated><disposition>none</disposition><dkim>fail</dkim><spf>fail</spf></policy_evaluated>
+    </row>
+    <identifiers><header_from>example.com</header_from></identifiers>
+    <auth_results>
+      <spf><domain>example.com</domain><result>softfail</result></spf>
+    </auth_results>
+  </record>
+</feedback>
