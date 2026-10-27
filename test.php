@@ -83,4 +83,30 @@ try {
     echo "damaged input rejected OK\n";
 }
 
+// 9 · A report that tries to read a local file is refused, unread
+$secret = sys_get_temp_dir() . '/dmarc-secret-' . getmypid() . '.txt';
+file_put_contents($secret, 'SECRET-LINE');
+$xxe = '<?xml version="1.0"?><!DOCTYPE feedback [<!ENTITY x SYSTEM "file://' . $secret . '">]>'
+     . '<feedback><report_metadata><org_name>&x;</org_name></report_metadata>'
+     . '<policy_published><domain>example.com</domain><p>none</p></policy_published></feedback>';
+try {
+    $leaked = $parser->parseXml($xxe);
+    unlink($secret);
+    $fail(str_contains($leaked->orgName, 'SECRET-LINE')
+        ? 'an external entity read a local file'
+        : 'accepted a report with a DOCTYPE');
+} catch (DmarcException) {
+    unlink($secret);
+    echo "external entity refused OK\n";
+}
+
+// 10 · The RFC 9990 format: a namespace on the root, <testing> instead of <pct>
+$bis = file_get_contents(__DIR__ . '/sample/example-report.xml');
+$bis = str_replace('<feedback>', '<feedback xmlns="urn:ietf:params:xml:ns:dmarc-2.0">', $bis);
+$bis = preg_replace('#<pct>.*?</pct>#', '<testing>n</testing>', $bis);
+$fromBis = $parser->parseXml($bis);
+$fromBis->messageCount() === 600 || $fail('RFC 9990 report');
+$fromBis->percentage === 100 || $fail('a missing pct should mean 100');
+echo "RFC 9990 report (namespaced, no pct) read OK\n";
+
 echo "\nall checks passed\n";

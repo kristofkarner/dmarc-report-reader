@@ -95,9 +95,14 @@ foreach ($summary->failingSources() as $source) {
 }
 ```
 
-Entity loading is off in the parser. These files arrive by email from
-strangers, and an XML parser that resolves external entities will happily
-read local files on request.
+The parser refuses any report that carries a DOCTYPE, and never substitutes
+entities. These files arrive by email from strangers, and an XML parser that
+resolves external entities will happily read local files on request. Copies
+from before 27 October 2026 passed `LIBXML_NOENT`, which — despite its name —
+turns substitution on; if you use one, update it.
+
+It reads both the original format (RFC 7489) and the one in RFC 9990: a
+namespace on the root element, and `<testing>` where `<pct>` used to be.
 
 ## Related writing
 

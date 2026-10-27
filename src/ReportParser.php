@@ -72,11 +72,17 @@ final class ReportParser
 
     public function parseXml(string $xml): AggregateReport
     {
-        // Entity loading stays off. These files arrive by email from
-        // strangers; an XML parser that resolves external entities will
-        // happily read local files on request.
+        // These files arrive by email from strangers. A report never needs
+        // a DTD, so one is refused outright: that closes external entities
+        // (reading local files on request) and entity-expansion bombs
+        // alike. LIBXML_NOENT must not be passed here — despite its name,
+        // it turns entity substitution ON.
+        if (preg_match('/<!DOCTYPE/i', $xml) === 1) {
+            throw new DmarcException('Refusing a report with a DOCTYPE.');
+        }
+
         $previous = libxml_use_internal_errors(true);
-        $feedback = simplexml_load_string($xml, options: LIBXML_NONET | LIBXML_NOENT);
+        $feedback = simplexml_load_string($xml, options: LIBXML_NONET);
         libxml_use_internal_errors($previous);
 
         if ($feedback === false) {
